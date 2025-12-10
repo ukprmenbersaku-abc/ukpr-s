@@ -1,4 +1,4 @@
-import { Image, Database, Palette, Wand2 } from 'lucide-react';
+import { Image, Database, Palette } from 'lucide-react';
 import { Project, NavItem } from './types';
 
 export const PROJECTS: Project[] = [
