@@ -4,7 +4,7 @@ import Hero from './components/Hero';
 import ProjectCard from './components/ProjectCard';
 import Footer from './components/Footer';
 import { PROJECTS } from './constants';
-import { Cpu, Zap, Code2, ExternalLink } from 'lucide-react';
+import { Cpu, Zap, Code2, ExternalLink, Cloud, Flame, Github, Sparkles } from 'lucide-react';
 
 const App: React.FC = () => {
   return (
@@ -55,7 +55,7 @@ const App: React.FC = () => {
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-20">
                     <div className="flex flex-col items-center text-center p-6 rounded-2xl bg-slate-900/50 border border-slate-800 hover:bg-slate-800/50 transition-colors">
                         <div className="p-4 rounded-full bg-blue-500/10 text-blue-400 mb-6">
                             <Cpu size={32} />
@@ -82,6 +82,29 @@ const App: React.FC = () => {
                         <p className="text-slate-400 text-sm">
                             公開しているツールは完全に無料利用可能。ウェブブラウザさえあれば、どこでも使えます。
                         </p>
+                    </div>
+                </div>
+
+                {/* Thanks to Section */}
+                <div className="pt-12 border-t border-slate-800/50">
+                    <h3 className="text-2xl font-bold text-center mb-10 text-slate-300">Thanks to</h3>
+                    <div className="flex flex-wrap justify-center items-center gap-6 md:gap-12">
+                        <div className="flex items-center gap-3 px-6 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:border-blue-500/50 hover:bg-slate-800 transition-all duration-300">
+                            <Sparkles size={20} className="text-blue-400" />
+                            <span className="font-semibold">Google AI Studio & Gemini</span>
+                        </div>
+                        <div className="flex items-center gap-3 px-6 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:border-orange-500/50 hover:bg-slate-800 transition-all duration-300">
+                            <Cloud size={20} className="text-orange-400" />
+                            <span className="font-semibold">Cloudflare</span>
+                        </div>
+                        <div className="flex items-center gap-3 px-6 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:border-white/50 hover:bg-slate-800 transition-all duration-300">
+                            <Github size={20} className="text-white" />
+                            <span className="font-semibold">GitHub</span>
+                        </div>
+                        <div className="flex items-center gap-3 px-6 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:border-amber-500/50 hover:bg-slate-800 transition-all duration-300">
+                            <Flame size={20} className="text-amber-500" />
+                            <span className="font-semibold">Firebase</span>
+                        </div>
                     </div>
                 </div>
             </div>
