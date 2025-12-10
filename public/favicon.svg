@@ -1,0 +1,26 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="brandGradient" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0EA5E9"/>
+      <stop offset="1" stop-color="#7C3AED"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  
+  <!-- Outer Hexagon with Gradient -->
+  <path d="M32 4L58.5 19.5V49.5L32 64L5.5 49.5V19.5L32 4Z" fill="url(#brandGradient)" filter="url(#glow)"/>
+  
+  <!-- Inner Hexagon Dark Background -->
+  <path d="M32 16L46 24V40L32 48L18 40V24L32 16Z" fill="#020617"/>
+  
+  <!-- Center Tech Core -->
+  <circle cx="32" cy="32" r="6" fill="#38BDF8">
+    <animate attributeName="opacity" values="0.6;1;0.6" duration="3s" repeatCount="indefinite" />
+  </circle>
+  
+  <!-- Circuit Lines -->
+  <path d="M32 16V10M46 24L51 21M46 40L51 43M32 48V54M18 40L13 43M18 24L13 21" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+</svg>
