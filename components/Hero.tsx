@@ -28,14 +28,14 @@ const Hero: React.FC = () => {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up delay-300">
           <a 
             href="#projects"
-            className="px-8 py-4 bg-brand-600 hover:bg-brand-500 text-white rounded-full font-bold transition-all hover:scale-105 shadow-lg shadow-brand-900/50 flex items-center gap-2"
+            className="px-8 py-4 bg-brand-600 hover:bg-brand-500 text-white rounded-full font-bold transition-all duration-500 hover:scale-105 shadow-lg shadow-brand-900/50 flex items-center gap-2"
           >
             Explore Tools
             <ArrowDown size={18} />
           </a>
           <a 
             href="#about"
-            className="px-8 py-4 bg-slate-900 hover:bg-slate-800 text-white border border-slate-700 rounded-full font-bold transition-all"
+            className="px-8 py-4 bg-slate-900 hover:bg-slate-800 text-white border border-slate-700 rounded-full font-bold transition-all duration-500"
           >
             About Project
           </a>

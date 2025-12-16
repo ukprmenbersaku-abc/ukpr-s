@@ -9,6 +9,7 @@ export default {
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
+        zen: ['"Zen Maru Gothic"', 'sans-serif'],
       },
       colors: {
         brand: {

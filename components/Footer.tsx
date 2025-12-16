@@ -18,9 +18,9 @@ const Footer: React.FC = () => {
             href="https://github.com/ukprmenbersaku-abc/" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="flex items-center gap-2 text-slate-500 hover:text-white transition-colors group"
+            className="flex items-center gap-2 text-slate-500 hover:text-white transition-colors duration-500 group"
           >
-            <span className="text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity -translate-x-2 group-hover:translate-x-0 duration-300">View on GitHub</span>
+            <span className="text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-500 -translate-x-2 group-hover:translate-x-0">View on GitHub</span>
             <Github size={24} />
           </a>
         </div>
