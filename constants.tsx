@@ -1,4 +1,3 @@
-import React from 'react';
 import { Project, NavItem } from './types';
 
 // Custom Icons based on user SVG
