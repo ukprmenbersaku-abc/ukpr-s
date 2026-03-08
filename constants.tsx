@@ -81,6 +81,24 @@ const SQLiteStudioIcon = ({ size = 24, className }: { size?: number | string, cl
   </svg>
 );
 
+const SnapNodeIcon = ({ size = 24, className }: { size?: number | string, className?: string }) => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    viewBox="0 0 32 32" 
+    width={size} 
+    height={size} 
+    className={className}
+  >
+    <rect width="32" height="32" rx="8" fill="#3730a3"/>
+    <g transform="translate(4, 4)">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/>
+        <circle cx="12" cy="12" r="3" fill="#ffffff" stroke="none"/>
+      </svg>
+    </g>
+  </svg>
+);
+
 export const PROJECTS: Project[] = [
   {
     id: 'pix-morph',
@@ -118,6 +136,14 @@ export const PROJECTS: Project[] = [
     tags: ['Collaboration', 'Community', 'Web Site'],
     gradient: 'from-green-500 to-emerald-600',
     fontClass: 'font-zen'
+  },
+  {
+    id: 'snap-node',
+    name: 'Snap Node',
+    description: '開発中のチャットツール。シンプルでセキュアなコミュニケーションを目指しています。',
+    icon: SnapNodeIcon,
+    tags: ['Chat', 'Communication', 'Coming Soon'],
+    gradient: 'from-indigo-600 to-violet-700'
   }
 ];
 

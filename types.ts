@@ -4,7 +4,7 @@ export interface Project {
   id: string;
   name: string;
   description: string;
-  url: string;
+  url?: string;
   icon: React.ElementType;
   tags: string[];
   gradient: string;
