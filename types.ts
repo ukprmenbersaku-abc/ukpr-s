@@ -5,7 +5,7 @@ export interface Project {
   name: string;
   description: string;
   url?: string;
-  icon: React.ElementType;
+  icon: React.ComponentType<{ size?: number | string; className?: string }>;
   tags: string[];
   gradient: string;
   fontClass?: string;

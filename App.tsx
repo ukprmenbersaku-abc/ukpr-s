@@ -3,15 +3,17 @@ import Header from './components/Header';
 import Hero from './components/Hero';
 import ProjectCard from './components/ProjectCard';
 import Footer from './components/Footer';
+import InteractiveBackground from './components/InteractiveBackground';
 import { PROJECTS } from './constants';
 import { Cpu, Zap, Code2, ExternalLink, Cloud, Flame, Github, Sparkles } from 'lucide-react';
 
 const App: React.FC = () => {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-50 font-sans selection:bg-brand-500/30 selection:text-brand-200">
+    <div className="min-h-screen bg-slate-950 text-slate-50 font-sans selection:bg-brand-500/30 selection:text-brand-200 relative overflow-x-hidden">
+      <InteractiveBackground />
       <Header />
       
-      <main>
+      <main className="relative z-10">
         <Hero />
 
         {/* Projects Grid Section */}
