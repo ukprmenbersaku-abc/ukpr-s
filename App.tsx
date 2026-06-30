@@ -1,21 +1,96 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import ProjectCard from './components/ProjectCard';
 import Footer from './components/Footer';
 import InteractiveBackground from './components/InteractiveBackground';
+import MiniCarGame from './components/MiniCarGame';
 import { PROJECTS } from './constants';
 import { Cpu, Zap, Code2, ExternalLink, Cloud, Flame, Sparkles } from 'lucide-react';
 import { Github } from './components/GithubIcon';
+import { motion, AnimatePresence } from 'motion/react';
 
 const App: React.FC = () => {
+  const [isRacingActive, setIsRacingActive] = useState<boolean>(false);
+  const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
+
+  const startRaceMode = () => {
+    if (isTransitioning || isRacingActive) return;
+    setIsTransitioning(true);
+    // After a short futuristic warp countdown, switch to racing mode
+    setTimeout(() => {
+      setIsRacingActive(true);
+      setIsTransitioning(false);
+    }, 1400);
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-50 font-sans selection:bg-brand-500/30 selection:text-brand-200 relative overflow-x-hidden">
-      <InteractiveBackground />
+      
+      {/* Immersive 3D Racing Game Overrides whole app */}
+      <AnimatePresence mode="wait">
+        {isRacingActive && (
+          <motion.div
+            key="racing-game"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.05 }}
+            transition={{ duration: 0.6 }}
+            className="fixed inset-0 z-50 overflow-hidden"
+          >
+            <MiniCarGame onClose={() => setIsRacingActive(false)} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Cyber warp screen transition overlay */}
+      <AnimatePresence>
+        {isTransitioning && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-slate-950 flex flex-col items-center justify-center text-center p-6 select-none overflow-hidden"
+          >
+            {/* Radial glow warp background */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.18)_0%,transparent_70%)] animate-pulse" />
+            
+            <motion.div 
+              initial={{ scale: 0.8, y: 20, opacity: 0 }}
+              animate={{ scale: [0.8, 1.05, 1], y: 0, opacity: 1 }}
+              transition={{ duration: 0.4 }}
+              className="relative z-10 flex flex-col items-center max-w-md"
+            >
+              <div className="w-16 h-16 bg-indigo-500/10 border border-indigo-500/50 rounded-2xl flex items-center justify-center text-indigo-400 mb-6 animate-bounce">
+                <Zap size={28} className="animate-pulse" />
+              </div>
+              
+              <h2 className="text-2xl md:text-3xl font-black tracking-widest text-white mb-2 font-mono">
+                CRITICAL LIMIT DETECTED
+              </h2>
+              <p className="text-brand-400 font-bold font-mono text-xs tracking-widest uppercase mb-8 animate-pulse">
+                Warping to Cyber Grid Circuit...
+              </p>
+              
+              {/* Linear warp loader */}
+              <div className="w-64 h-3 bg-slate-900 border border-slate-800 rounded-full overflow-hidden p-[2px]">
+                <motion.div 
+                  initial={{ width: "0%" }}
+                  animate={{ width: "100%" }}
+                  transition={{ duration: 1.2, ease: "easeInOut" }}
+                  className="h-full bg-gradient-to-r from-brand-500 via-indigo-500 to-purple-600 rounded-full"
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <InteractiveBackground onBoundaryHit={startRaceMode} />
       <Header />
       
       <main className="relative z-10">
-        <Hero />
+        <Hero onStartRace={startRaceMode} />
 
         {/* Projects Grid Section */}
         <section id="projects" className="py-24 relative">

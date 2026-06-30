@@ -2,7 +2,11 @@ import React from 'react';
 import { Sparkles, ArrowDown } from 'lucide-react';
 import { APP_TAGLINE } from '../constants';
 
-const Hero: React.FC = () => {
+interface HeroProps {
+  onStartRace?: () => void;
+}
+
+const Hero: React.FC<HeroProps> = ({ onStartRace }) => {
   return (
     <section className="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden">
       {/* Background Decor */}
@@ -33,6 +37,16 @@ const Hero: React.FC = () => {
             Explore Tools
             <ArrowDown size={18} />
           </a>
+          
+          {onStartRace && (
+            <button 
+              onClick={onStartRace}
+              className="px-8 py-4 bg-slate-950/90 hover:bg-indigo-950/90 text-indigo-300 hover:text-white border-2 border-indigo-500/50 hover:border-indigo-400 rounded-full font-bold transition-all duration-500 hover:scale-105 shadow-lg shadow-indigo-950 flex items-center gap-2 group cursor-pointer"
+            >
+              <span className="group-hover:animate-bounce">🏁</span> Enter Neon Circuit
+            </button>
+          )}
+
           <a 
             href="#about"
             className="px-8 py-4 bg-slate-900 hover:bg-slate-800 text-white border border-slate-700 rounded-full font-bold transition-all duration-500"

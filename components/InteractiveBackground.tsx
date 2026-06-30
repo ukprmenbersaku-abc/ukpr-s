@@ -41,57 +41,57 @@ const MiniCar: React.FC<MiniCarProps> = ({ carRef, headlightsOn, speed }) => {
 
   return (
     <group ref={carRef}>
-      {/* Sleek Cyber Car Body */}
+      {/* Sleek Cyber Car Body with high specular metalness and vivid color */}
       <mesh castShadow receiveShadow>
         <boxGeometry args={[1.2, 0.4, 2.2]} />
-        <meshStandardMaterial color="#6366f1" roughness={0.15} metalness={0.8} />
+        <meshStandardMaterial color="#818cf8" roughness={0.05} metalness={0.9} />
       </mesh>
       
-      {/* Cabin / Windshield */}
+      {/* Cabin / Windshield - brighter neon cyan tone */}
       <mesh position={[0, 0.35, -0.1]} castShadow>
         <boxGeometry args={[0.9, 0.35, 1.1]} />
-        <meshStandardMaterial color="#38bdf8" transparent opacity={0.65} roughness={0.05} metalness={0.95} />
+        <meshStandardMaterial color="#06b6d4" transparent opacity={0.8} roughness={0.02} metalness={0.95} />
       </mesh>
 
-      {/* Futuristic Spoiler */}
+      {/* Futuristic Spoiler - brighter neon violet accent */}
       <mesh position={[0, 0.4, 0.9]} castShadow>
         <boxGeometry args={[1.4, 0.08, 0.3]} />
-        <meshStandardMaterial color="#818cf8" roughness={0.2} metalness={0.5} />
+        <meshStandardMaterial color="#a78bfa" roughness={0.1} metalness={0.6} />
       </mesh>
       {/* Spoiler Supports */}
       <mesh position={[-0.5, 0.2, 0.9]} castShadow>
         <boxGeometry args={[0.08, 0.3, 0.08]} />
-        <meshStandardMaterial color="#312e81" />
+        <meshStandardMaterial color="#4f46e5" />
       </mesh>
       <mesh position={[0.5, 0.2, 0.9]} castShadow>
         <boxGeometry args={[0.08, 0.3, 0.08]} />
-        <meshStandardMaterial color="#312e81" />
+        <meshStandardMaterial color="#4f46e5" />
       </mesh>
 
-      {/* Cyberpunk Emissive Underglow */}
+      {/* Cyberpunk Emissive Underglow - extremely vibrant neon cyan */}
       <mesh position={[0, -0.19, 0]}>
         <boxGeometry args={[1.0, 0.02, 1.8]} />
-        <meshBasicMaterial color="#38bdf8" toneMapped={false} />
+        <meshBasicMaterial color="#22d3ee" toneMapped={false} />
       </mesh>
 
-      {/* Neon Headlights (Visually reacts to headlightsOn) */}
+      {/* Neon Headlights (Visually reacts to headlightsOn - much brighter) */}
       <mesh position={[-0.4, 0.08, -1.11]}>
         <boxGeometry args={[0.2, 0.08, 0.03]} />
-        <meshBasicMaterial color={headlightsOn ? "#38bdf8" : "#1e293b"} toneMapped={false} />
+        <meshBasicMaterial color={headlightsOn ? "#22d3ee" : "#334155"} toneMapped={false} />
       </mesh>
       <mesh position={[0.4, 0.08, -1.11]}>
         <boxGeometry args={[0.2, 0.08, 0.03]} />
-        <meshBasicMaterial color={headlightsOn ? "#38bdf8" : "#1e293b"} toneMapped={false} />
+        <meshBasicMaterial color={headlightsOn ? "#22d3ee" : "#334155"} toneMapped={false} />
       </mesh>
 
       {/* Hot Red Taillights */}
       <mesh position={[-0.4, 0.08, 1.11]}>
         <boxGeometry args={[0.25, 0.06, 0.03]} />
-        <meshBasicMaterial color="#ef4444" toneMapped={false} />
+        <meshBasicMaterial color="#f43f5e" toneMapped={false} />
       </mesh>
       <mesh position={[0.4, 0.08, 1.11]}>
         <boxGeometry args={[0.25, 0.06, 0.03]} />
-        <meshBasicMaterial color="#ef4444" toneMapped={false} />
+        <meshBasicMaterial color="#f43f5e" toneMapped={false} />
       </mesh>
 
       {/* Spotlight forward targets */}
@@ -104,9 +104,9 @@ const MiniCar: React.FC<MiniCarProps> = ({ carRef, headlightsOn, speed }) => {
           position={[0, 0.2, -1.12]} 
           angle={0.55} 
           penumbra={0.6} 
-          intensity={8.0} 
-          distance={22} 
-          color="#38bdf8"
+          intensity={12.0} 
+          distance={24} 
+          color="#22d3ee"
           castShadow
           shadow-bias={-0.0001}
         />
@@ -144,6 +144,7 @@ interface ReactiveSceneProps {
   setHeadlightsOn: React.Dispatch<React.SetStateAction<boolean>>;
   setCarSpeed: (val: number) => void;
   resetTriggerRef: React.MutableRefObject<boolean>;
+  onBoundaryHit?: () => void;
 }
 
 // 3D Scene Controller
@@ -154,6 +155,7 @@ const ReactiveScene: React.FC<ReactiveSceneProps> = ({
   setHeadlightsOn,
   setCarSpeed,
   resetTriggerRef,
+  onBoundaryHit,
 }) => {
   const instancedMeshRef = useRef<THREE.InstancedMesh>(null);
   const carRef = useRef<THREE.Group>(null);
@@ -243,31 +245,31 @@ const ReactiveScene: React.FC<ReactiveSceneProps> = ({
 
     // 2. Physics & Navigation Engine
     if (isManual) {
-      // Manual Driving Physics
+      // Manual Driving Physics - highly tuned for instant, responsive action
       let accel = 0;
-      if (keysRef.current.forward) accel += 0.009;
-      if (keysRef.current.backward) accel -= 0.006;
+      if (keysRef.current.forward) accel += 0.016;
+      if (keysRef.current.backward) accel -= 0.011;
 
       // Friction / Handbrake
       if (keysRef.current.handbrake) {
-        phys.speed *= 0.82; // Extreme sliding friction
+        phys.speed *= 0.85; // Sharp sliding friction
       } else if (accel === 0) {
-        phys.speed *= 0.95; // Gentle rolling friction
+        phys.speed *= 0.94; // Rolling friction
       }
 
       phys.speed += accel;
 
       // Speed Clamping limits
-      const maxSpeed = 0.32;
-      const maxReverse = -0.14;
+      const maxSpeed = 0.45;
+      const maxReverse = -0.20;
       if (phys.speed > maxSpeed) phys.speed = maxSpeed;
       if (phys.speed < maxReverse) phys.speed = maxReverse;
 
-      // Adaptive Steering based on current velocity (cannot steer while fully stopped)
+      // Adaptive Steering - tuned to turn easily even at extremely slow speeds!
       if (Math.abs(phys.speed) > 0.001) {
         const steerDir = phys.speed > 0 ? 1 : -1;
-        // Steer factor scales beautifully with speed to simulate realistic momentum turn radius
-        const steerFactor = 0.075 * Math.min(Math.abs(phys.speed) * 4.5, 1.0);
+        // Steer factor provides a base turning capability (0.05) and increases with speed for momentum
+        const steerFactor = 0.055 + 0.045 * Math.min(Math.abs(phys.speed) * 4.0, 1.0);
         
         if (keysRef.current.left) phys.angle += steerFactor * steerDir;
         if (keysRef.current.right) phys.angle -= steerFactor * steerDir;
@@ -278,14 +280,19 @@ const ReactiveScene: React.FC<ReactiveSceneProps> = ({
       phys.x -= Math.sin(phys.angle) * phys.speed;
       phys.z -= Math.cos(phys.angle) * phys.speed;
 
-      // Dynamic Boundary Bouncing
+      // Dynamic Boundary Bouncing - more springy and satisfying
       const boundX = (COLS / 2) * BLOCK_SPACING - 1.2;
       const boundZ = (ROWS / 2) * BLOCK_SPACING - 1.2;
 
-      if (phys.x > boundX) { phys.x = boundX; phys.speed *= -0.45; }
-      if (phys.x < -boundX) { phys.x = -boundX; phys.speed *= -0.45; }
-      if (phys.z > boundZ) { phys.z = boundZ; phys.speed *= -0.45; }
-      if (phys.z < -boundZ) { phys.z = -boundZ; phys.speed *= -0.45; }
+      let hitBoundary = false;
+      if (phys.x > boundX) { phys.x = boundX; phys.speed *= -0.65; hitBoundary = true; }
+      if (phys.x < -boundX) { phys.x = -boundX; phys.speed *= -0.65; hitBoundary = true; }
+      if (phys.z > boundZ) { phys.z = boundZ; phys.speed *= -0.65; hitBoundary = true; }
+      if (phys.z < -boundZ) { phys.z = -boundZ; phys.speed *= -0.65; hitBoundary = true; }
+
+      if (hitBoundary && onBoundaryHit && isManual) {
+        onBoundaryHit();
+      }
 
       // Idle verification (returns to autopilot if keyboard is untouched for 18 seconds)
       const isAnyKeyPressed = keysRef.current.forward || keysRef.current.backward || keysRef.current.left || keysRef.current.right;
@@ -401,15 +408,15 @@ const ReactiveScene: React.FC<ReactiveSceneProps> = ({
       const mouseGlow = Math.exp(-distToMouse / 2.8);
 
       const color = tempColor.current;
-      color.set('#0b0f19'); // Deep slate canvas color
+      color.set('#151f32'); // Brightened base grid block color (slate)
 
       if (carGlow > 0.01) {
         // Neon Indigo cyber car trail
-        color.lerp(new THREE.Color('#6366f1'), carGlow * 0.85);
+        color.lerp(new THREE.Color('#818cf8'), carGlow * 0.9);
       }
       if (mouseGlow > 0.01) {
         // Cyber cyan mouse hover highlight
-        color.lerp(new THREE.Color('#38bdf8'), mouseGlow * 0.9);
+        color.lerp(new THREE.Color('#22d3ee'), mouseGlow * 0.95);
       }
 
       mesh.setColorAt(i, color);
@@ -438,7 +445,11 @@ const ReactiveScene: React.FC<ReactiveSceneProps> = ({
   );
 };
 
-const InteractiveBackground: React.FC = () => {
+interface InteractiveBackgroundProps {
+  onBoundaryHit?: () => void;
+}
+
+const InteractiveBackground: React.FC<InteractiveBackgroundProps> = ({ onBoundaryHit }) => {
   const [gameState, setGameState] = useState<'idle' | 'showing-popup' | 'active'>('showing-popup');
   const [timeLeft, setTimeLeft] = useState<number>(3);
   const [isManual, setIsManual] = useState<boolean>(false);
@@ -494,19 +505,19 @@ const InteractiveBackground: React.FC = () => {
             camera={{ position: [0, 16, 20], fov: 42 }}
             style={{ pointerEvents: 'auto' }}
           >
-            <ambientLight intensity={0.2} />
+            <ambientLight intensity={0.55} />
             
             <directionalLight 
               position={[12, 22, 12]} 
-              intensity={0.9} 
-              color="#312e81"
+              intensity={1.8} 
+              color="#6366f1"
               castShadow
               shadow-mapSize-width={1024}
               shadow-mapSize-height={1024}
             />
 
-            <pointLight position={[-16, 10, -10]} intensity={1.5} color="#0ea5e9" distance={45} />
-            <pointLight position={[16, 10, 10]} intensity={1.5} color="#ec4899" distance={45} />
+            <pointLight position={[-16, 10, -10]} intensity={3.5} color="#22d3ee" distance={50} />
+            <pointLight position={[16, 10, 10]} intensity={3.5} color="#f43f5e" distance={50} />
 
             <ReactiveScene 
               isManual={isManual}
@@ -515,6 +526,7 @@ const InteractiveBackground: React.FC = () => {
               setHeadlightsOn={setHeadlightsOn}
               setCarSpeed={setCarSpeed}
               resetTriggerRef={resetTriggerRef}
+              onBoundaryHit={onBoundaryHit}
             />
           </Canvas>
         )}
@@ -525,8 +537,8 @@ const InteractiveBackground: React.FC = () => {
         {gameState === 'active' && (
           <div className="fixed inset-0 pointer-events-none z-20 flex flex-col justify-between p-6">
             
-            {/* TOP BAR: Dashboard Stats */}
-            <div className="flex justify-between items-start w-full">
+            {/* TOP BAR: Dashboard Stats - shifted down with mt-16 to avoid overlapping with top-level navigation */}
+            <div className="flex justify-between items-start w-full mt-20 md:mt-24">
               {/* Speedometer widget */}
               <motion.div 
                 initial={{ opacity: 0, y: -20 }}
