@@ -23,8 +23,11 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
       <div className="p-6 md:p-8 flex-1 flex flex-col z-10">
         <div className="flex items-center justify-between mb-4">
           <div className={project.url ? "group-hover:scale-110 transition-transform duration-500" : ""}>
-            {/* Icons are now self-contained SVGs with backgrounds, so we display them larger without a wrapper */}
-            <project.icon size={48} />
+            {/* Cast to any to bypass complex React 18 vs 19 typing issues during build */}
+            {(() => {
+              const IconComponent = project.icon as any;
+              return <IconComponent size={48} />;
+            })()}
           </div>
           {project.url && (
             <ExternalLink size={20} className="text-slate-500 group-hover:text-brand-400 transition-colors duration-500" />
