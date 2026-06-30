@@ -500,7 +500,7 @@ const InteractiveBackground: React.FC<InteractiveBackgroundProps> = ({ onBoundar
       >
         {gameState === 'active' && (
           <Canvas 
-            shadows 
+            shadows={{ type: THREE.PCFShadowMap }} 
             dpr={[1, 1.5]} 
             camera={{ position: [0, 16, 20], fov: 42 }}
             style={{ pointerEvents: 'auto' }}

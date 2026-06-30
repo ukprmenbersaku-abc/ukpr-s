@@ -18,27 +18,23 @@ import {
 } from 'lucide-react';
 
 // --- GAME CONFIG & TUNING ---
-const TRACK_WIDTH = 5.5;
+const TRACK_WIDTH = 22.0; // Widened to ~3 times (original was 8.0)
 const BARRIER_HEIGHT = 0.55;
 const CAR_RADIUS = 0.6;
 
 // Checkpoint nodes (t parameter positions along the curve)
 const CHECKPOINT_T = [0.25, 0.5, 0.75]; 
 
-// 12 key points defining a gorgeous serpentine circuit loop
+// 8 wide, smooth points defining an ultra-smooth speedway circuit with fewer, gentler curves
 const TRACK_POINTS = [
-  new THREE.Vector3(0, 0, -35),     // Start / Finish Line
-  new THREE.Vector3(25, 0, -30),    // Turn 1
-  new THREE.Vector3(45, 0, -10),    // Long sweep
-  new THREE.Vector3(35, 1, 20),     // Elevated hill section
-  new THREE.Vector3(10, 0.5, 35),   // High speed crest
-  new THREE.Vector3(-15, 0, 40),    // Left sweep
-  new THREE.Vector3(-35, 0, 20),    // Hairpin approach
-  new THREE.Vector3(-45, 0, -5),    // Hairpin apex
-  new THREE.Vector3(-25, 0, -15),   // Chicane entrance
-  new THREE.Vector3(-30, 0, -28),   // Chicane exit
-  new THREE.Vector3(-15, 0, -40),   // Final corner turn-in
-  new THREE.Vector3(-5, 0, -38)     // Final straight alignment
+  new THREE.Vector3(0, 0, -70),     // Start / Finish Line on a massive straightaway
+  new THREE.Vector3(70, 0, -60),    // Super gentle corner 1 sweep to the right
+  new THREE.Vector3(100, 0.5, 0),   // Gentle high speed crest
+  new THREE.Vector3(70, 1.0, 60),    // Corner 2 sweep
+  new THREE.Vector3(0, 0.8, 70),     // Back straightaway with elegant elevation flow
+  new THREE.Vector3(-70, 0, 60),    // Gentle corner 3 sweep
+  new THREE.Vector3(-100, 0.5, 0),  // Midpoint crest
+  new THREE.Vector3(-70, 0, -60),   // Final corner turn-in towards home
 ];
 
 // Generate smooth spline curve
@@ -58,8 +54,22 @@ const BOOST_PADS_PARAMS = [0.08, 0.28, 0.52, 0.72, 0.92];
 class EngineSoundSynth {
   private ctx: AudioContext | null = null;
   private osc: OscillatorNode | null = null;
+  private modulator: OscillatorNode | null = null;
+  private modGain: GainNode | null = null;
+  private subOsc: OscillatorNode | null = null;
+  private subGain: GainNode | null = null;
+  private turboOsc: OscillatorNode | null = null;
+  private turboGain: GainNode | null = null;
   private filter: BiquadFilterNode | null = null;
-  private gain: GainNode | null = null;
+  private mainGain: GainNode | null = null;
+  
+  // Brake and Skid sound synthesis nodes
+  private brakeOsc: OscillatorNode | null = null;
+  private brakeGain: GainNode | null = null;
+  private skidSource: AudioBufferSourceNode | null = null;
+  private skidFilter: BiquadFilterNode | null = null;
+  private skidGain: GainNode | null = null;
+
   private active = false;
 
   constructor() {
@@ -72,39 +82,166 @@ class EngineSoundSynth {
       const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
       if (!AudioCtx) return;
       this.ctx = new AudioCtx();
-      
+
+      // --- ENGINE MOTOR SYNTH ---
+      // 1. Main engine cylinder oscillator (sawtooth)
       this.osc = this.ctx.createOscillator();
-      this.filter = this.ctx.createBiquadFilter();
-      this.gain = this.ctx.createGain();
-
       this.osc.type = 'sawtooth';
-      this.osc.frequency.setValueAtTime(45, this.ctx.currentTime);
+      this.osc.frequency.setValueAtTime(30, this.ctx.currentTime);
 
+      // 2. Modulator oscillator for cylinder explosion pulse (FM)
+      this.modulator = this.ctx.createOscillator();
+      this.modulator.type = 'sawtooth';
+      this.modulator.frequency.setValueAtTime(15, this.ctx.currentTime);
+
+      this.modGain = this.ctx.createGain();
+      this.modGain.gain.setValueAtTime(18, this.ctx.currentTime);
+
+      // Connect modulator -> modGain -> osc frequency
+      this.modulator.connect(this.modGain);
+      this.modGain.connect(this.osc.frequency);
+
+      // 3. Sub-bass engine rumble (triangle for deep bass feel)
+      this.subOsc = this.ctx.createOscillator();
+      this.subOsc.type = 'triangle';
+      this.subOsc.frequency.setValueAtTime(15, this.ctx.currentTime);
+
+      this.subGain = this.ctx.createGain();
+      this.subGain.gain.setValueAtTime(0.04, this.ctx.currentTime);
+      this.subOsc.connect(this.subGain);
+
+      // 4. Turbo whine high pitch whistle (sine)
+      this.turboOsc = this.ctx.createOscillator();
+      this.turboOsc.type = 'sine';
+      this.turboOsc.frequency.setValueAtTime(350, this.ctx.currentTime);
+
+      this.turboGain = this.ctx.createGain();
+      this.turboGain.gain.setValueAtTime(0.001, this.ctx.currentTime);
+      this.turboOsc.connect(this.turboGain);
+
+      // 5. Shared motor filter (lowpass filter for deep muffled roar)
+      this.filter = this.ctx.createBiquadFilter();
       this.filter.type = 'lowpass';
-      this.filter.frequency.setValueAtTime(220, this.ctx.currentTime);
-      this.filter.Q.setValueAtTime(3.5, this.ctx.currentTime);
+      this.filter.frequency.setValueAtTime(180, this.ctx.currentTime);
+      this.filter.Q.setValueAtTime(4.0, this.ctx.currentTime);
 
-      this.gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
-
+      // Connect primary oscillator to motor filter
       this.osc.connect(this.filter);
-      this.filter.connect(this.gain);
-      this.gain.connect(this.ctx.destination);
 
+      // Master engine gain node
+      this.mainGain = this.ctx.createGain();
+      this.mainGain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+
+      // Route all engine components to master engine gain
+      this.filter.connect(this.mainGain);
+      this.subGain.connect(this.mainGain);
+      this.turboGain.connect(this.mainGain);
+      this.mainGain.connect(this.ctx.destination);
+
+      // Start engine oscillators
       this.osc.start();
+      this.modulator.start();
+      this.subOsc.start();
+      this.turboOsc.start();
+
+      // --- BRAKE SQUEAL SYNTH ---
+      this.brakeOsc = this.ctx.createOscillator();
+      this.brakeOsc.type = 'sine';
+      this.brakeOsc.frequency.setValueAtTime(3000, this.ctx.currentTime);
+
+      this.brakeGain = this.ctx.createGain();
+      this.brakeGain.gain.setValueAtTime(0.0, this.ctx.currentTime);
+      this.brakeOsc.connect(this.brakeGain);
+      this.brakeGain.connect(this.ctx.destination);
+      this.brakeOsc.start();
+
+      // --- DRIFT TIRE SKID SYNTH (White Noise + Filter) ---
+      const bufferSize = 2 * this.ctx.sampleRate;
+      const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+
+      this.skidSource = this.ctx.createBufferSource();
+      this.skidSource.buffer = noiseBuffer;
+      this.skidSource.loop = true;
+
+      this.skidFilter = this.ctx.createBiquadFilter();
+      this.skidFilter.type = 'bandpass';
+      this.skidFilter.frequency.setValueAtTime(800, this.ctx.currentTime);
+      this.skidFilter.Q.setValueAtTime(2.5, this.ctx.currentTime);
+
+      this.skidGain = this.ctx.createGain();
+      this.skidGain.gain.setValueAtTime(0.0, this.ctx.currentTime);
+
+      this.skidSource.connect(this.skidFilter);
+      this.skidFilter.connect(this.skidGain);
+      this.skidGain.connect(this.ctx.destination);
+      this.skidSource.start();
+
       this.active = true;
     } catch (e) {
       console.warn('Failed to start synth engine:', e);
     }
   }
 
-  public update(speedRatio: number, isBoosting: boolean) {
-    if (!this.active || !this.ctx || !this.osc || !this.filter) return;
+  public update(speedRatio: number, isBoosting: boolean, isBraking: boolean, isDrifting: boolean) {
+    if (!this.active || !this.ctx) return;
     try {
-      const pitch = 35 + speedRatio * 160 + (isBoosting ? 65 : 0);
-      const filterFreq = 180 + speedRatio * 450 + (isBoosting ? 300 : 0);
+      const now = this.ctx.currentTime;
+
+      // 1. Engine Core frequency & throb (higher ratio = faster cylinder ignition frequency)
+      const baseHz = 28;
+      const topHz = 165;
+      const targetPitch = baseHz + speedRatio * (topHz - baseHz) + (isBoosting ? 60 : 0);
       
-      this.osc.frequency.setTargetAtTime(pitch, this.ctx.currentTime, 0.08);
-      this.filter.frequency.setTargetAtTime(filterFreq, this.ctx.currentTime, 0.08);
+      const targetModHz = 14 + speedRatio * 45;
+      const targetModGain = 16 + speedRatio * 75;
+
+      if (this.osc) {
+        this.osc.frequency.setTargetAtTime(targetPitch, now, 0.05);
+      }
+      if (this.modulator && this.modGain) {
+        this.modulator.frequency.setTargetAtTime(targetModHz, now, 0.05);
+        this.modGain.gain.setTargetAtTime(targetModGain, now, 0.05);
+      }
+
+      // 2. Lowpass resonance filter frequency (widens at high RPMs for a roaring sound)
+      const filterFreq = 160 + speedRatio * 420 + (isBoosting ? 260 : 0);
+      if (this.filter) {
+        this.filter.frequency.setTargetAtTime(filterFreq, now, 0.05);
+      }
+
+      // 3. Sub-bass engine rumble tracking
+      if (this.subOsc) {
+        this.subOsc.frequency.setTargetAtTime(14 + speedRatio * 22, now, 0.08);
+      }
+
+      // 4. Turbo spool whine pitch and volume (extremely realistic high-rev spool)
+      const turboHz = 350 + speedRatio * 1450 + (isBoosting ? 450 : 0);
+      const turboVol = 0.001 + speedRatio * 0.015 + (isBoosting ? 0.015 : 0);
+      if (this.turboOsc && this.turboGain) {
+        this.turboOsc.frequency.setTargetAtTime(turboHz, now, 0.08);
+        this.turboGain.gain.setTargetAtTime(turboVol, now, 0.08);
+      }
+
+      // 5. Brake squeal sound activation
+      if (this.brakeGain && this.brakeOsc) {
+        const targetBrakeVol = isBraking ? Math.min(0.018, speedRatio * 0.035) : 0.0;
+        this.brakeGain.gain.setTargetAtTime(targetBrakeVol, now, 0.03);
+        // Slight frequency variance to represent friction variations
+        this.brakeOsc.frequency.setValueAtTime(3000 + Math.sin(now * 50) * 15, now);
+      }
+
+      // 6. Tires screech / skid sound activation
+      if (this.skidGain && this.skidFilter) {
+        const targetSkidVol = isDrifting ? Math.min(0.12, 0.04 + speedRatio * 0.12) : (isBraking && speedRatio > 0.3) ? 0.05 : 0.0;
+        this.skidGain.gain.setTargetAtTime(targetSkidVol, now, 0.05);
+        
+        const skidFreq = 750 + speedRatio * 350 + (isDrifting ? 120 : 0);
+        this.skidFilter.frequency.setValueAtTime(skidFreq, now);
+      }
     } catch (e) {
       // Ignored
     }
@@ -114,11 +251,27 @@ class EngineSoundSynth {
     if (!this.active) return;
     try {
       this.osc?.stop();
+      this.modulator?.stop();
+      this.subOsc?.stop();
+      this.turboOsc?.stop();
+      this.brakeOsc?.stop();
+      this.skidSource?.stop();
       this.ctx?.close();
     } catch (e) {}
     this.osc = null;
+    this.modulator = null;
+    this.modGain = null;
+    this.subOsc = null;
+    this.subGain = null;
+    this.turboOsc = null;
+    this.turboGain = null;
     this.filter = null;
-    this.gain = null;
+    this.mainGain = null;
+    this.brakeOsc = null;
+    this.brakeGain = null;
+    this.skidSource = null;
+    this.skidFilter = null;
+    this.skidGain = null;
     this.ctx = null;
     this.active = false;
   }
@@ -144,18 +297,26 @@ export default function MiniCarGame({ onClose }: MiniCarGameProps) {
   const [score, setScore] = useState(0);
   const [showNotification, setShowNotification] = useState<string | null>(null);
 
+  // Helper to dynamically calculate perfect start state on spline curve
+  const getInitialCarState = () => {
+    const startPt = trackCurve.getPointAt(0);
+    const startTg = trackCurve.getTangentAt(0).normalize();
+    const startAng = Math.atan2(-startTg.x, -startTg.z);
+    return {
+      x: startPt.x,
+      y: startPt.y,
+      z: startPt.z,
+      angle: startAng,
+      speed: 0,
+      isBoosting: false,
+      isDrifting: false,
+      totalDistance: 0
+    };
+  };
+
   // References
   const soundSynth = useRef<EngineSoundSynth | null>(null);
-  const carState = useRef({
-    x: 0,
-    y: 0,
-    z: -35,
-    angle: Math.PI / 2, // Head start direction (facing East)
-    speed: 0,
-    isBoosting: false,
-    isDrifting: false,
-    totalDistance: 0
-  });
+  const carState = useRef(getInitialCarState());
 
   const keys = useRef({
     forward: false,
@@ -285,17 +446,8 @@ export default function MiniCarGame({ onClose }: MiniCarGameProps) {
     setCheckpointsPassed([false, false, false]);
     setActiveCollectibles(collectibles.map(c => ({ ...c, collected: false })));
     
-    // Reset car variables
-    carState.current = {
-      x: 0,
-      y: 0,
-      z: -35,
-      angle: Math.PI / 2,
-      speed: 0,
-      isBoosting: false,
-      isDrifting: false,
-      totalDistance: 0
-    };
+    // Reset car variables to starting point on the spline curve
+    carState.current = getInitialCarState();
   };
 
   // On-screen Virtual Controls for touch/mouse play (操作しやすいようにして)
@@ -317,7 +469,7 @@ export default function MiniCarGame({ onClose }: MiniCarGameProps) {
       
       {/* 3D WebGL Canvas Layer */}
       <div className="absolute inset-0 z-0">
-        <Canvas shadows camera={{ fov: 45 }}>
+        <Canvas shadows={{ type: THREE.PCFShadowMap }} camera={{ fov: 45 }}>
           <Scene 
             gameState={gameState}
             carState={carState}
@@ -328,10 +480,15 @@ export default function MiniCarGame({ onClose }: MiniCarGameProps) {
             onUpdateHUD={(currSpeed, currNitro) => {
               setSpeed(currSpeed);
               setNitro(currNitro);
-              // Update synth engine frequency based on speed
+              // Update synth engine sound based on real-time driving inputs
               if (soundSynth.current) {
                 const ratio = Math.min(Math.abs(currSpeed) / 130, 1.0);
-                soundSynth.current.update(ratio, keys.current.boost && currNitro > 0);
+                soundSynth.current.update(
+                  ratio, 
+                  keys.current.boost && currNitro > 0,
+                  keys.current.backward && currSpeed > 5,
+                  keys.current.drift && Math.abs(currSpeed) > 15
+                );
               }
             }}
             onPassCheckpoint={(index) => {
@@ -919,29 +1076,34 @@ function Scene({
       car.x -= Math.sin(car.angle) * car.speed * 60 * dt;
       car.z -= Math.cos(car.angle) * car.speed * 60 * dt;
 
-      // Track relative path parameters (useful for lap tracing & boundary safety)
-      const carPos = new THREE.Vector3(car.x, 0, car.z);
+      // Track relative path parameters (useful for lap tracing & boundary safety) - using 2D projection for perfect stability
+      const carPos2D = new THREE.Vector3(car.x, 0, car.z);
       
       // Look for closest spline point to prevent flying out of track
       let closestT = 0;
       let minDistance = Infinity;
+      let closestPt = new THREE.Vector3();
       const searchResolution = 150;
       for (let i = 0; i < searchResolution; i++) {
         const tempT = i / searchResolution;
         const pt = trackCurve.getPointAt(tempT);
-        const dist = carPos.distanceTo(pt);
+        const pt2D = new THREE.Vector3(pt.x, 0, pt.z);
+        const dist = carPos2D.distanceTo(pt2D);
         if (dist < minDistance) {
           minDistance = dist;
           closestT = tempT;
+          closestPt = pt;
         }
       }
+
+      // Update car's vertical height to match the track's vertical profile (fixes the sinking car bug)
+      car.y = closestPt.y;
 
       // Keep car within track bounds (soft constraint: slow down. hard constraint: bounce/push back)
       const maxAllowedDist = TRACK_WIDTH / 2 - CAR_RADIUS;
       if (minDistance > maxAllowedDist) {
         // Push car back onto track
-        const trackPt = trackCurve.getPointAt(closestT);
-        const toTrack = trackPt.clone().sub(carPos);
+        const toTrack = closestPt.clone().sub(carPos2D);
         toTrack.y = 0;
         toTrack.normalize();
         
@@ -969,12 +1131,12 @@ function Scene({
         car.totalDistance += Math.abs(car.speed);
       }
 
-      // Check Collectibles collisions
+      // Check Collectibles collisions (using forgiving 2D checking so they are always reachable)
       activeCollectibles.forEach((item) => {
         if (!item.collected) {
-          const itemPos = new THREE.Vector3(item.position.x, 0, item.position.z);
-          const dist = carPos.distanceTo(itemPos);
-          if (dist < 1.3) {
+          const itemPos2D = new THREE.Vector3(item.position.x, 0, item.position.z);
+          const dist = carPos2D.distanceTo(itemPos2D);
+          if (dist < 2.5) { // Wider collection range for widened track
             item.collected = true;
             onCollectStar();
             // Trigger confetti/particle flash visually
@@ -987,8 +1149,9 @@ function Scene({
       if (boostPadCooldown.current <= 0) {
         BOOST_PADS_PARAMS.forEach((tVal) => {
           const padPos = trackCurve.getPointAt(tVal);
-          const dist = carPos.distanceTo(padPos);
-          if (dist < 2.0) {
+          const padPos2D = new THREE.Vector3(padPos.x, 0, padPos.z);
+          const dist = carPos2D.distanceTo(padPos2D);
+          if (dist < 4.0) { // Wider boost pad touch range for widened track
             car.speed = 1.15; // Mega speed burst
             boostPadCooldown.current = 1.2;
             onBoostPad();
@@ -1475,17 +1638,17 @@ function MiniCar({ isBoosting, isDrifting, onWheelRef }: MiniCarProps) {
 function CityScenery() {
   const skyscrapers = useMemo(() => {
     const list = [];
-    const count = 40;
+    const count = 45;
     for (let i = 0; i < count; i++) {
-      // Circle layout far from center track area
+      // Circle layout far outside the widened track boundaries to prevent collisions
       const angle = (i / count) * Math.PI * 2 + Math.random() * 0.12;
-      const radius = 65 + Math.random() * 25;
+      const radius = 180 + Math.random() * 90; // Placed far out (original was 65-90)
       const x = Math.cos(angle) * radius;
       const z = Math.sin(angle) * radius;
 
-      const width = 4 + Math.random() * 8;
-      const depth = 4 + Math.random() * 8;
-      const height = 15 + Math.random() * 30;
+      const width = 6 + Math.random() * 10;
+      const depth = 6 + Math.random() * 10;
+      const height = 30 + Math.random() * 45; // Taller, magnificent distant towers
 
       // Select bright neon wireframe color
       const colors = ["#4f46e5", "#0ea5e9", "#7c3aed", "#ec4899", "#10b981"];
@@ -1503,8 +1666,8 @@ function CityScenery() {
 
   return (
     <group>
-      {/* Cyber ground grid */}
-      <gridHelper args={[240, 60, '#1e1b4b', '#0f172a']} position={[0, -0.05, 0]} />
+      {/* Cyber ground grid expanded for the new distant horizons */}
+      <gridHelper args={[600, 100, '#1e1b4b', '#0f172a']} position={[0, -0.05, 0]} />
 
       {/* Distant skyscrapers wireframes */}
       {skyscrapers.map((building) => (
