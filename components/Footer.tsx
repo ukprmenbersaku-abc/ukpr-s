@@ -1,6 +1,6 @@
 import React from 'react';
 import { APP_NAME } from '../constants';
-import { Github } from 'lucide-react';
+import { Github } from './GithubIcon';
 
 const Footer: React.FC = () => {
   return (

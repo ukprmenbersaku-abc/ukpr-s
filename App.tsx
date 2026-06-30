@@ -5,7 +5,8 @@ import ProjectCard from './components/ProjectCard';
 import Footer from './components/Footer';
 import InteractiveBackground from './components/InteractiveBackground';
 import { PROJECTS } from './constants';
-import { Cpu, Zap, Code2, ExternalLink, Cloud, Flame, Github, Sparkles } from 'lucide-react';
+import { Cpu, Zap, Code2, ExternalLink, Cloud, Flame, Sparkles } from 'lucide-react';
+import { Github } from './components/GithubIcon';
 
 const App: React.FC = () => {
   return (
